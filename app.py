@@ -147,8 +147,9 @@ def initialize_quiz_state():
 
 st.markdown("## 4. 🧠 퀴즈 코너")
 
-# 세션 상태 초기화 및 퀴즈 문제 생성 (더 안전한 초기화)
-if 'quiz_answered' not in st.session_state or st.session_state.quiz_answered == True:
+# 세션 상태 초기화 및 퀴즈 문제 생성 (가장 안전한 초기화)
+# 'quiz_num1'이 세션에 없다면 (앱 최초 실행 시) 초기화 함수 실행
+if 'quiz_num1' not in st.session_state:
     initialize_quiz_state()
 
 quiz_num1 = st.session_state.quiz_num1
@@ -170,12 +171,21 @@ if st.button("정답 확인", disabled=st.session_state.quiz_answered):
         st.error("❌ 틀렸습니다. 다시 한 번 생각해볼까요?")
         st.session_state.show_quiz_solution = True
         
-# 퀴즈 다음 문제 버튼 (수정됨: 에러 방지를 위해 재실행 전에 명시적 초기화)
-if st.button("다음 퀴즈로 넘어가기"):
-    st.session_state.quiz_answered = False # 재실행 전에 버튼 비활성 상태 해제
-    initialize_quiz_state() # 새 문제 생성
-    st.experimental_rerun() # 앱을 다시 실행하여 새 문제 표시
+# 퀴즈 상태 초기화 함수 (새로운 문제 생성 및 상태 초기화)
+def initialize_quiz_state():
+    st.session_state.quiz_num1 = random.randint(10, 50)
+    st.session_state.quiz_num2 = random.randint(10, 50)
+    st.session_state.quiz_gcd = gcd(st.session_state.quiz_num1, st.session_state.quiz_num2)
+    st.session_state.quiz_answered = False
+    st.session_state.show_quiz_solution = False
 
+# ... (중략: 퀴즈 확인 버튼 코드) ...
+
+# 퀴즈 다음 문제 버튼 (Callback 방식으로 오류 방지)
+if st.button("다음 퀴즈로 넘어가기", on_click=initialize_quiz_state):
+    # on_click에 지정된 initialize_quiz_state 함수가 버튼 클릭 시 자동으로 실행됩니다.
+    pass
+    
 # 틀렸을 경우 풀이 과정 보여주기
 if st.session_state.show_quiz_solution:
     if st.checkbox("풀이 과정 보기", key='show_quiz_sol_check'):
